@@ -1,0 +1,160 @@
+/*
+ * $Id$
+ *
+ * Copyright (C) 2003-2015 JNode.org
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public 
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; If not, write to the Free Software Foundation, Inc., 
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+ 
+package org.jnode.fs.jfat;
+
+/**
+ * @author gvt
+ */
+public class FatAttr {
+    public static final int READONLY = 0x01;
+    public static final int HIDDEN = 0x02;
+    public static final int SYSTEM = 0x04;
+    public static final int LABEL = 0x08;
+    public static final int DIRECTORY = 0x10;
+    public static final int ARCHIVE = 0x20;
+    public static final int LONGNAME = READONLY | HIDDEN | SYSTEM | LABEL; // 0x0F
+    public static final int MASK = LONGNAME | DIRECTORY | ARCHIVE; // 0x3F
+
+    private int attr;
+
+    public FatAttr(int attr) {
+        this.attr = attr;
+    }
+
+    public FatAttr() {
+        this.attr = 0;
+    }
+
+    public boolean equals(Object o) {
+        if (o instanceof FatAttr)
+            return (((FatAttr) o).getAttr() & MASK) == (attr & MASK);
+        else
+            return false;
+    }
+
+    public int getAttr() {
+        return attr;
+    }
+
+    private boolean isAttr(int attr) {
+        return ((this.attr & attr) != 0);
+    }
+
+    private void setAttr(int attr, boolean value) {
+        if (value)
+            this.attr |= attr;
+        else
+            this.attr &= ~attr;
+    }
+
+    public boolean isReadOnly() {
+        return isAttr(READONLY);
+    }
+
+    public void setReadOnly(boolean value) {
+        setAttr(READONLY, value);
+    }
+
+    public boolean isHidden() {
+        return isAttr(HIDDEN);
+    }
+
+    public void setHidden(boolean value) {
+        setAttr(HIDDEN, value);
+    }
+
+    public boolean isSystem() {
+        return isAttr(SYSTEM);
+    }
+
+    public void setSystem(boolean value) {
+        setAttr(SYSTEM, value);
+    }
+
+    public boolean isLabel() {
+        return isAttr(LABEL);
+    }
+
+    public void setLabel(boolean value) {
+        setAttr(LABEL, value);
+    }
+
+    public boolean isDirectory() {
+        return isAttr(DIRECTORY);
+    }
+
+    public void setDirectory(boolean value) {
+        setAttr(DIRECTORY, value);
+    }
+
+    public boolean isArchive() {
+        return isAttr(ARCHIVE);
+    }
+
+    public void setArchive(boolean value) {
+        setAttr(ARCHIVE, value);
+    }
+
+    public boolean isLong() {
+        //
+        // as prescribed on fatgen 1.03 page 33
+        //
+        return ((attr & MASK) == LONGNAME);
+    }
+
+    public void setLong() {
+        setAttr(LONGNAME, true);
+        setAttr(ARCHIVE, false);
+        setAttr(DIRECTORY, false);
+    }
+
+    public String toString() {
+        StrWriter out = new StrWriter();
+
+        if (isLong()) {
+            //
+            // as prescribed on fatgen 1.03 page 33
+            // have to be the first to be tested with "isLong()"
+            //
+            out.print("LONG");
+        } else {
+            if (isReadOnly())
+                out.print("R");
+
+            if (isHidden())
+                out.print("H");
+
+            if (isSystem())
+                out.print("S");
+
+            if (isArchive())
+                out.print("A");
+
+            if (isLabel())
+                out.print("L");
+
+            if (isDirectory())
+                out.print("D");
+        }
+
+        return out.toString();
+    }
+}
