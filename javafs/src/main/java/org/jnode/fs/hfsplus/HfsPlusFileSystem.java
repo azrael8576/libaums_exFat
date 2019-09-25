@@ -166,6 +166,11 @@ public class HfsPlusFileSystem extends AbstractFileSystem<HfsPlusEntry> {
         return ((CatalogKey) record.getKey()).getNodeName().getUnicodeString();
     }
 
+    @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
+
     public final Catalog getCatalog() {
         return catalog;
     }

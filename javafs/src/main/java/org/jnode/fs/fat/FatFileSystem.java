@@ -213,4 +213,9 @@ public class FatFileSystem extends AbstractFileSystem<FatRootEntry> {
     public String getVolumeName() throws IOException {
         return ""; // TODO implement me
     }
+
+    @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
 }

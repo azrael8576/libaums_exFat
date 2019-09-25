@@ -43,6 +43,11 @@ public final class ApfsFileSystem extends AbstractFileSystem<FSEntry> {
     }
 
     @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
+
+    @Override
     public void flush() throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }

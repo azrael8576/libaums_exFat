@@ -107,4 +107,6 @@ public interface FileSystem<T extends FSEntry> {
      * @throws IOException if an error occurs reading the volume name.
      */
     public String getVolumeName() throws IOException;
+
+    public Integer getChunkSize() throws IOException;
 }

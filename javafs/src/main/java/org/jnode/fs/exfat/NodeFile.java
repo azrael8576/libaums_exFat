@@ -109,12 +109,86 @@ public class NodeFile extends AbstractFSObject implements FSFile {
 
     @Override
     public void write(long offset, ByteBuffer src) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+//        Long length = offset + src.remaining();
+//        if (length > getLength())
+//            setLength(length);
+//        node.getTimes().getModified().setTime(System.currentTimeMillis());
+        //--start---
+        final int len = src.remaining();
+
+        if (len == 0) return;
+
+        if (offset + len > getLength()) {
+            throw new EOFException();
+        }
+
+        final int bpc = node.getSuperBlock().getBytesPerCluster();
+        long cluster = node.getStartCluster();
+        int remain = src.remaining();
+
+        // Skip to the cluster that corresponds to the requested offset
+        long clustersToSkip = offset / bpc;
+        for (int i = 0; i < clustersToSkip; i++) {
+            cluster = this.node.nextCluster(cluster);
+
+            if (Cluster.invalid(cluster)) {
+                throw new IOException("invalid cluster");
+            }
+        }
+
+        // Write in any leading partial cluster
+        if (offset % bpc != 0) {
+            ByteBuffer tmpBuffer = ByteBuffer.allocate(bpc);
+            node.getSuperBlock().writeCluster(tmpBuffer, cluster);
+
+            int tmpOffset = (int) (offset % bpc);
+            int tmpLength = Math.min(remain, bpc - tmpOffset);
+
+            src.put(tmpBuffer.array(), tmpOffset, tmpLength);
+            remain -= tmpLength;
+            cluster = this.node.nextCluster(cluster);
+
+            if (remain != 0 && Cluster.invalid(cluster)) {
+                throw new IOException("invalid cluster");
+            }
+        }
+
+        Integer remainingClusters = remain / bpc;
+
+        // Write in the remaining data
+        while (remain > 0) {
+            Integer size;
+            Integer clusters = 1;
+            if (remainingClusters > 4){
+                size = bpc * 4;
+                clusters = 4;
+                remainingClusters -= 4;
+            }else if (remainingClusters > 0){
+                size = bpc * remainingClusters;
+                clusters = remainingClusters;
+                remainingClusters = 0;
+            }else{
+                size = remainingClusters;
+            }
+
+            src.limit(src.position() + size);
+            node.getSuperBlock().writeCluster(src, cluster);
+
+            remain -= size;
+            cluster = this.node.nextCluster(cluster);
+
+            if (remain != 0 && Cluster.invalid(cluster)) {
+                throw new IOException("invalid cluster");
+            }
+        }
+        //---end---
+//        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void flush() throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+//        //TODO: 拿到資料夾.flush
+//        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

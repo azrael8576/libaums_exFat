@@ -97,6 +97,11 @@ public class NTFSFileSystem extends AbstractFileSystem<FSEntry> {
         return "";
     }
 
+    @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
+
     /**
      * Gets the volume's ID.
      *

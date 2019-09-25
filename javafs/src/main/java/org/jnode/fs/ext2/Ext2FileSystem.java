@@ -987,4 +987,9 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
     public String getVolumeName() throws IOException {
         return superblock.getVolumeName();
     }
+
+    @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
 }

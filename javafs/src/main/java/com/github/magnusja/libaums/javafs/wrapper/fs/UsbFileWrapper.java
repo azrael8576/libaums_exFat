@@ -7,6 +7,7 @@ import android.util.Log;
 import com.github.mjdev.libaums.fs.AbstractUsbFile;
 import com.github.mjdev.libaums.fs.UsbFile;
 
+import org.jnode.LogUtil;
 import org.jnode.fs.FSDirectory;
 import org.jnode.fs.FSEntry;
 import org.jnode.fs.FSEntryCreated;
@@ -207,7 +208,7 @@ public class UsbFileWrapper extends AbstractUsbFile {
         if(dir == null) {
             throw new UnsupportedOperationException("This is a file!");
         }
-
+        LogUtil.writeLog("addFile： " + name);
         return new UsbFileWrapper(dir.addFile(name));
     }
 

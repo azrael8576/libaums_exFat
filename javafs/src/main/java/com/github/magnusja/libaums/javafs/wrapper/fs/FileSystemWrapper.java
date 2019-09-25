@@ -77,14 +77,10 @@ public class FileSystemWrapper implements FileSystem {
     @Override
     public int getChunkSize() {
         try {
-            // TODO this is wrong
-            return wrappedFs.getDevice().getAPI(FSBlockDeviceAPI.class).getSectorSize();
+            return wrappedFs.getChunkSize();
         } catch (IOException e) {
-            Log.e(TAG, "error getting sector size", e);
-            return 4096;
-        } catch (ApiNotFoundException e) {
-            Log.e(TAG, "api not found (this should not happen)", e);
-            return 4096;
+            Log.e(TAG, "error getting chunk size", e);
+            return 0;
         }
     }
 

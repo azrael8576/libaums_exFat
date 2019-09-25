@@ -18,6 +18,7 @@
 package com.github.mjdev.libaums.fs.fat32
 
 import android.util.Log
+import com.github.mjdev.libaums.LogUtil
 import com.github.mjdev.libaums.driver.BlockDeviceDriver
 import com.github.mjdev.libaums.fs.AbstractUsbFile
 import com.github.mjdev.libaums.fs.UsbFile
@@ -317,6 +318,7 @@ internal constructor(
         addEntry(entry, entry.actualEntry)
         // write changes immediately to disk
         write()
+        LogUtil.writeLog("createFile；$name")
 
         val file = FatFile(blockDevice, fat, bootSector, entry, this)
         fs.fileCache[file.absolutePath] = file

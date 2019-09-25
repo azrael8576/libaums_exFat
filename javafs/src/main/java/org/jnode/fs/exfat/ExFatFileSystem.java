@@ -73,12 +73,17 @@ public final class ExFatFileSystem extends AbstractFileSystem<NodeEntry> {
 
     @Override
     public long getTotalSpace() throws IOException {
-        return -1;
+        return sb.getBlockCount() * sb.getBlockSize();
     }
 
     @Override
     public long getFreeSpace() throws IOException {
-        return -1;
+        return bitmap.getClusterCount() * sb.getBlocksPerCluster();
+    }
+
+    @Override
+    public Integer getChunkSize() throws IOException {
+        return sb.getBytesPerCluster();
     }
 
     @Override

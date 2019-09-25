@@ -102,4 +102,8 @@ final class DeviceAccess {
         dev.read(offset, dest);
     }
 
+    public void write(ByteBuffer dest, long offset) throws IOException {
+        dev.write(offset, dest);
+    }
+
 }

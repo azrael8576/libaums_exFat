@@ -81,7 +81,7 @@ private constructor(private val usbManager: UsbManager,
     lateinit var partitions: List<Partition>
 
     // TODO this is never used, should we only allow one init() call?
-    private var inited = false
+    var inited = false
 
     /**
      * Initializes the mass storage device and determines different things like

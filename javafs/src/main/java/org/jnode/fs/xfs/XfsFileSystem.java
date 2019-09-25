@@ -85,6 +85,11 @@ public class XfsFileSystem extends AbstractFileSystem<XfsEntry> {
     }
 
     @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
+
+    @Override
     protected FSFile createFile(FSEntry entry) throws IOException {
         return new XfsFile((XfsEntry) entry);
     }

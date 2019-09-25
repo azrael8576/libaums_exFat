@@ -125,4 +125,9 @@ public class FatFileSystem extends AbstractFileSystem<FatRootDirectory> {
     public String getVolumeName() throws IOException {
         return getRootEntry().getLabel();
     }
+
+    @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
 }

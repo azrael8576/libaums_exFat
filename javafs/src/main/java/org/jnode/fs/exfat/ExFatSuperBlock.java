@@ -149,6 +149,13 @@ public final class ExFatSuperBlock extends AbstractFSObject {
         da.read(dest, clusterToOffset(cluster));
     }
 
+    public void writeCluster(ByteBuffer dest, long cluster) throws IOException {
+        assert (dest.remaining() <= this.getBytesPerCluster())
+                : "write over cluster bundary";
+
+        da.write(dest, clusterToOffset(cluster));
+    }
+
     public DeviceAccess getDeviceAccess() {
         return da;
     }
@@ -212,8 +219,10 @@ public final class ExFatSuperBlock extends AbstractFSObject {
         return (1 << blocksPerClusterBits);
     }
 
-    public int getBytesPerCluster() {
-        return (getBlockSize() << this.blocksPerClusterBits);
+    public Integer getBytesPerCluster() {
+        Integer blockSize = getBlockSize();
+        Integer blocksPerCluster = getBlocksPerCluster();
+        return blockSize * blocksPerCluster;
     }
 
     /**

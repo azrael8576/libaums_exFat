@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.NoSuchElementException;
 
@@ -86,8 +87,10 @@ import com.github.mjdev.libaums.fs.FileSystemFactory;
 import com.github.mjdev.libaums.fs.UsbFile;
 import com.github.mjdev.libaums.fs.UsbFileInputStream;
 import com.github.mjdev.libaums.fs.UsbFileStreamFactory;
+import com.github.mjdev.libaums.partition.Partition;
 import com.github.mjdev.libaums.server.http.UsbFileHttpServerService;
 import com.github.mjdev.libaums.server.http.server.AsyncHttpServer;
+import com.tapgo.alex.libaums.TGMassStorageDevice;
 
 /**
  * MainActivity of the demo application which shows the contents of the first
@@ -156,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 		}
 	};
+    private boolean isInitPartitions = false;
 
     /**
 	 * Dialog to create new directories.
@@ -645,7 +649,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
         serviceIntent = new Intent(this, UsbFileHttpServerService.class);
 
 		setContentView(R.layout.activity_main);
@@ -663,7 +666,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                getSupportActionBar().setTitle(massStorageDevices[currentDevice].getPartitions().get(0).getVolumeLabel());
+                if (isInitPartitions)
+                    getSupportActionBar().setTitle(massStorageDevices[currentDevice].getPartitions().get(0).getVolumeLabel());
             }
 
             /** Called when a drawer has settled in a completely open state. */
@@ -732,7 +736,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 			listView.setAdapter(null);
 			return;
 		}
-
         drawerListView.setAdapter(new DrawerListAdapter(this, R.layout.drawer_list_item, massStorageDevices));
         drawerListView.setItemChecked(0, true);
         currentDevice = 0;
@@ -762,6 +765,14 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 			// we always use the first partition of the device
 			currentFs = massStorageDevices[currentDevice].getPartitions().get(0).getFileSystem();
+            for (Partition partition : massStorageDevices[currentDevice].getPartitions()) {
+                currentFs = partition.getFileSystem();
+                LogUtil.writeLog("---start---");
+                ArrayList a = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
+                LogUtil.writeLog(a.toString());
+                LogUtil.writeLog("---end---");
+            }
+            Log.d(TAG, "VolumeLabel: " + currentFs.getVolumeLabel());
 			Log.d(TAG, "Capacity: " + currentFs.getCapacity());
 			Log.d(TAG, "Occupied Space: " + currentFs.getOccupiedSpace());
 			Log.d(TAG, "Free Space: " + currentFs.getFreeSpace());
@@ -772,7 +783,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 			actionBar.setTitle(currentFs.getVolumeLabel());
 
 			listView.setAdapter(adapter = new UsbFileListAdapter(this, root));
+            isInitPartitions = true;
 		} catch (IOException e) {
+            Toast.makeText(this, "error setting up device" + e, Toast.LENGTH_LONG).show();
 			Log.e(TAG, "error setting up device", e);
 		}
 

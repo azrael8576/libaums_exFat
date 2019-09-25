@@ -34,6 +34,7 @@ import org.jnode.fs.FSFile;
 import org.jnode.fs.FileSystem;
 import org.jnode.fs.FileSystemException;
 import org.jnode.fs.FileSystemType;
+import org.jnode.fs.exfat.ExFatFileSystemType;
 
 /**
  * This class provide a basic implementation of {@link FileSystem} interface.
@@ -65,11 +66,12 @@ public abstract class AbstractFileSystem<T extends FSEntry> implements FileSyste
      * 
      * @param device device contains file system. This paramter is mandatory.
      * @param readOnly file system should be read-only.
-     * 
+     *
+     * @param type
      * @throws FileSystemException device is null or device has no {@link BlockDeviceAPI} defined.
      */
     public AbstractFileSystem(Device device, boolean readOnly,
-            FileSystemType<? extends FileSystem<T>> type) throws FileSystemException {
+                              FileSystemType type) throws FileSystemException {
         if (device == null)
             throw new FileSystemException("Device cannot be null.");
 
@@ -96,7 +98,7 @@ public abstract class AbstractFileSystem<T extends FSEntry> implements FileSyste
     /**
      * @see FileSystem#getType()
      */
-    public final FileSystemType<? extends FileSystem<T>> getType() {
+    public FileSystemType<? extends FileSystem<T>> getType() {
         return type;
     }
 

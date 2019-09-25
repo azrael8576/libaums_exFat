@@ -121,4 +121,9 @@ public class ISO9660FileSystem extends AbstractFileSystem<ISO9660Entry> {
     public String getVolumeName() throws IOException {
         return getVolume().getPrimaryVolumeDescriptor().getVolumeIdentifier();
     }
+
+    @Override
+    public Integer getChunkSize() throws IOException {
+        return null;
+    }
 }
