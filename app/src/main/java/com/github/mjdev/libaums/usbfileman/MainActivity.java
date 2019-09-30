@@ -90,6 +90,7 @@ import com.github.mjdev.libaums.fs.UsbFileStreamFactory;
 import com.github.mjdev.libaums.partition.Partition;
 import com.github.mjdev.libaums.server.http.UsbFileHttpServerService;
 import com.github.mjdev.libaums.server.http.server.AsyncHttpServer;
+import com.tapgo.alex.libaums.TGFileList;
 import com.tapgo.alex.libaums.TGMassStorageDevice;
 
 /**
@@ -941,6 +942,17 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	public void onItemClick(AdapterView<?> parent, View view, int position, long rowId) {
 		UsbFile entry = adapter.getItem(position);
 		try {
+			//---start demo-----
+			ArrayList partitions = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
+			LogUtil.writeLog(partitions.toString());
+			ArrayList firstPartition = (ArrayList) partitions.get(0);
+			//TGFileList for FAT32
+			if (2 == (int)firstPartition.get(1)){
+				UsbFile usbFile= (UsbFile) new TGFileList(currentFs).getFilesMap().get("/378_icon.jpg");
+				LogUtil.writeLog(usbFile.getParent().getAbsolutePath());
+				LogUtil.writeLog(String.valueOf(usbFile.isDirectory()));
+			}
+			//---end demo-----
 			if (entry.isDirectory()) {
 				dirs.push(adapter.getCurrentDir());
 				listView.setAdapter(adapter = new UsbFileListAdapter(this, entry));
