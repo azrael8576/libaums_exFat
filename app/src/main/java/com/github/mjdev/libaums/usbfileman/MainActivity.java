@@ -974,11 +974,11 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 				f.mkdirs();
 				//---start demo-----
 				//----單擋案完成--
-				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
-				UsbFile file = fileOperation.getFile("/123/321/123/picture.jpg");
-//				fileOperation.getFile("/123/picture.jpg");
-				ArrayList arrayList = new ArrayList();
-				arrayList.add(file);
+//				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+//				UsbFile file = fileOperation.getFile("/123/321/123/picture.jpg");
+////				fileOperation.getFile("/123/picture.jpg");
+//				ArrayList arrayList = new ArrayList();
+//				arrayList.add(file);
 				//----單擋案完成--
 
 //				if (usb == null) {
@@ -988,8 +988,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 //					LogUtil.writeLog("usb != null");
 //				}
 				//----多擋案完成--
-//				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
-//				UsbFile[] usbFiles = fileOperation.getFileListIn("/123/321/123");
+				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+				ArrayList arrayList = fileOperation.getFileListIn("/123/321/123");
 //				ArrayList arrayList = new ArrayList();
 //				for (UsbFile file : usbFiles) {
 //					arrayList.add(file);
