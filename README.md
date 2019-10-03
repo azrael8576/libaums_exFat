@@ -1,3 +1,45 @@
+# Tapgo Api
+## Query available mass storage devices
+
+### TGMassStorageDevice(<UsbMassStorageDevice>).getPartitions()
+
+### Returns:
+
+UsbMassStorageDevice的磁區資訊
+
+### type:ArrayList
+
+[[String VolumeLabel, int PartitionType, Long Capacity, Long OccupiedSpace, Long FreeSpace, int ChunkSize]]
+
+### PartitionType:
+
+2 : FAT32
+
+6 : ExFAT
+
+### Ex:
+[["PartitionNo1", 2, 10000, 5000, 5000, 32768],["PartitionEx", 6, 10000, 6000, 4000, 532]]
+
+
+#### Java
+
+```java
+UsbMassStorageDevice[] devices = UsbMassStorageDevice.getMassStorageDevices(this /* Context or Activity */);
+
+//通常Android只有一個 Usb 傳輸插槽
+final int currentDevice = 0;
+//before interacting with a device you need to call init()!
+devices[currentDevice].init()
+//印出UsbMassStorageDevice的磁區資訊
+ArrayList partitions = new TGMassStorageDevice(devices[currentDevice]).getPartitions();
+Log.e(partitions.toString())
+
+//磁區index
+Int currentPartition = 0;
+FileSystem currentFs = devices[currentDevice].getPartitions().get(0).getFileSystem();
+
+```
+
 libaums
 =======
 [![Javadocs](https://www.javadoc.io/badge/com.github.mjdev/libaums.svg)](https://www.javadoc.io/doc/com.github.mjdev/libaums)
