@@ -42,6 +42,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.view.LayoutInflater;
+import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
 
@@ -162,9 +163,11 @@ public class TGFileOperation {
         throw new TGFileOperationException("Failed to find file: " + pathname);
     }
 
-    public UsbFile[] getFileListIn(String dirPathname) throws TGFileOperationException, IOException {
-        if ("/".equals(dirPathname))
-            throw  new TGFileOperationException("Failed to get file.");
+    public ArrayList<UsbFile> getFileListIn(String dirPathname) throws TGFileOperationException, IOException {
+        ArrayList<UsbFile> result = new ArrayList<>();
+        if ("/".equals(dirPathname)) {
+            currentDir.listFiles();
+        }
         String currentPath;
         StringTokenizer st = new StringTokenizer(dirPathname, "/");
         ArrayList<String> subPathList = new ArrayList();
@@ -172,30 +175,47 @@ public class TGFileOperation {
             subPathList.add(st.nextToken());
         }
         currentPath = subPathList.get(0);
-        if (filesMap.containsKey(dirPathname)) {
-            UsbFile dir = filesMap.get(dirPathname);
-            return dir.listFiles();
+        LogUtil.writeLog("in: " + currentPath);
+        if (filesMap.containsKey(currentPath)) {
+            currentDir = filesMap.get(currentPath);
+            String subPath = "";
+            if (subPathList.size() > 1){
+                subPathList.remove(0);
+                for (String date: subPathList) {
+                    subPath += "/" + date;
+                }
+                LogUtil.writeLog("[subPath]: " + subPath);
+                refresh();
+                return getFileListIn(subPath);
+            } else {
+                for (UsbFile file:currentDir.listFiles()) {
+                    if (!("._").equals(file.getName().substring(0,2))){
+                        result.add(file);
+                    }
+                }
+                return result;
+            }
         }
         throw new TGFileOperationException("Failed to find dir: " + dirPathname);
     }
 
-    public void fileCopy(Context context, UsbFile usbFile, String toPath) throws TGFileOperationException, IOException {
-        LogUtil.writeLog("copy file to: " + toPath);
-        Path path = Paths.get(toPath);
-        if (Files.exists(path)) {
-            File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + usbFile.getName());
-            boolean res = file.createNewFile();
-            if (!res) {
-                throw new TGFileOperationException("已經存在此檔案: " + usbFile.getName());
-            } else {
-                CopyTaskParam param = new CopyTaskParam();
-                param.from = usbFile;
-                param.to = file;
-                this.context = context;
-                new CopyTask().execute(param);
-            }
-        }
-    }
+//    public void fileCopy(Context context, UsbFile usbFile, String toPath) throws TGFileOperationException, IOException {
+//        LogUtil.writeLog("copy file to: " + toPath);
+//        Path path = Paths.get(toPath);
+//        if (Files.exists(path)) {
+//            File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + usbFile.getName());
+//            boolean res = file.createNewFile();
+//            if (!res) {
+//                throw new TGFileOperationException("已經存在此檔案: " + usbFile.getName());
+//            } else {
+//                CopyTaskParam param = new CopyTaskParam();
+//                param.from = usbFile;
+//                param.to = file;
+//                this.context = context;
+//                new CopyTask().execute(param);
+//            }
+//        }
+//    }
 
     public void fileCopyToPhone(Context context, ArrayList<UsbFile> usbFiles, String toPath) throws TGFileOperationException, IOException {
 //        parserPath(toPath);
@@ -205,9 +225,9 @@ public class TGFileOperation {
             for (UsbFile usbFile: usbFiles) {
                 File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + usbFile.getName());
                 boolean res = file.createNewFile();
-                if (!res) {
+                if (!res && !usbFile.isDirectory()) {
                     throw new TGFileOperationException("File already exists: " + usbFile.getName());
-                } else {
+                } else if (!usbFile.isDirectory()) {
                     CopyTaskParam param = new CopyTaskParam();
                     param.from = usbFile;
                     param.to = file;
@@ -221,6 +241,8 @@ public class TGFileOperation {
                     }
                 }
             }
+        } else{
+            throw new TGFileOperationException("Can't find toPath" + toPath);
         }
     }
 
@@ -252,7 +274,7 @@ public class TGFileOperation {
      * @author mjahnen
      *
      */
-    private class CopyTask extends AsyncTask<CopyTaskParam, Integer, Void> {
+    private class CopyTask extends AsyncTask<CopyTaskParam, Integer, Boolean> {
 
         //        private ProgressDialog dialog;
         private CopyTaskParam param;
@@ -272,7 +294,7 @@ public class TGFileOperation {
         }
 
         @Override
-        protected Void doInBackground(CopyTaskParam... params) {
+        protected Boolean doInBackground(CopyTaskParam... params) {
             long time = System.currentTimeMillis();
             param = params[0];
             try {
@@ -298,16 +320,25 @@ public class TGFileOperation {
                 inputStream.close();
             } catch (IOException e) {
 //                Log.e(TAG, "error copying!", e);
+                try {
+                    throw new TGFileOperationException("error copying! file name = " + param.from.getName());
+                } catch (TGFileOperationException ex) {
+                    ex.printStackTrace();
+                }
                 LogUtil.writeLog("error copying!" + e);
+                return false;
             }
 //            Log.d(TAG, "copy time: " + (System.currentTimeMillis() - time));
-            return null;
+            return true;
         }
 
         @Override
-        protected void onPostExecute(Void result) {
+        protected void onPostExecute(Boolean result) {
 //            dialog.dismiss();
-            LogUtil.writeLog("success copy : " + param.to.getAbsolutePath());
+            if (result) {
+                Toast.makeText(context, "success copy : " + param.to.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                LogUtil.writeLog("success copy : " + param.to.getAbsolutePath());
+            }
             if (!param.multifile) {
                 Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
                 File file = new File(param.to.getAbsolutePath());
