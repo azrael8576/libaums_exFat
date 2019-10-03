@@ -1,11 +1,11 @@
 # Tapgo Api
-## Query available mass storage devices
+## 獲取USB儲存裝置資訊
 
 ### TGMassStorageDevice(<UsbMassStorageDevice>).getPartitions()
 
 ### Returns:
 
-UsbMassStorageDevice的磁區資訊
+ArrayList, UsbMassStorageDevice的磁區資訊
 
 ### type:ArrayList
 
@@ -39,6 +39,52 @@ Int currentPartition = 0;
 FileSystem currentFs = devices[currentDevice].getPartitions().get(0).getFileSystem();
 
 ```
+## 檔案操作
+
+### TGFileOperation(<FileSystem>, <UsbFile>)
+
+### throw:
+IOException
+
+### TGFileOperation(<FileSystem>, UsbFile rootDir).getFile(<String filePathName>)
+    
+
+### Returns:
+
+UsbFile, 絕對路徑的UseFile檔案
+
+### throws:
+
+TGFileOperationException : 當filePathName檔案不存在時拋出
+
+#### Java
+
+```java
+TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+UsbFile file = fileOperation.getFile("/dir1/subdir2/picture.jpg");
+
+```
+
+### TGFileOperation(<FileSystem>, UsbFile rootDir).getFileListIn(<String dirPathname>)
+    
+
+### Returns:
+
+ArrayList, 目錄下所有檔案, 暫不包含子資料夾
+
+### throws:
+
+TGFileOperationException : 當找不到目錄時拋出
+
+#### Java
+
+```java
+TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+ArrayList arrayList = fileOperation.getFileListIn("/dir/subdir");
+
+```
+
+
 
 libaums
 =======
