@@ -84,6 +84,28 @@ ArrayList arrayList = fileOperation.getFileListIn("/dir/subdir");
 
 ```
 
+### TGFileOperation(<FileSystem>, UsbFile rootDir).fileCopyToPhone(<Context>, <ArrayList<UsbFile>>, <String toPath>);
+
+將單/多筆UsbFile寫入指定路徑, 單一檔案寫入完畢後會開啟
+
+### throws:
+
+TGFileOperationException : 
+
+當找不到路徑時拋出
+
+
+#### Java
+
+```java
+TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+ArrayList arrayList = fileOperation.getFileListIn("/123");
+
+fileOperation.fileCopyToPhone(MainActivity.this, arrayList,
+    Environment.getExternalStorageDirectory().getAbsolutePath());
+
+```
+
 
 
 libaums
