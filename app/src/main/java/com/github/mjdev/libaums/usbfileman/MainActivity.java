@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.github.mjdev.libaums.usbfileman;
@@ -90,15 +90,16 @@ import com.github.mjdev.libaums.fs.UsbFileStreamFactory;
 import com.github.mjdev.libaums.partition.Partition;
 import com.github.mjdev.libaums.server.http.UsbFileHttpServerService;
 import com.github.mjdev.libaums.server.http.server.AsyncHttpServer;
-import com.tapgo.alex.libaums.TGFileList;
+import com.tapgo.alex.libaums.TGFileOperation;
+import com.tapgo.alex.libaums.TGFileOperationException;
 import com.tapgo.alex.libaums.TGMassStorageDevice;
 
 /**
  * MainActivity of the demo application which shows the contents of the first
  * partition.
- * 
+ *
  * @author mjahnen
- * 
+ *
  */
 public class MainActivity extends AppCompatActivity implements OnItemClickListener {
 
@@ -112,9 +113,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	private static final String ACTION_USB_PERMISSION = "com.github.mjdev.libaums.USB_PERMISSION";
 	private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final int COPY_STORAGE_PROVIDER_RESULT = 0;
-    private static final int OPEN_STORAGE_PROVIDER_RESULT = 1;
-    private static final int OPEN_DOCUMENT_TREE_RESULT = 2;
+	private static final int COPY_STORAGE_PROVIDER_RESULT = 0;
+	private static final int OPEN_STORAGE_PROVIDER_RESULT = 1;
+	private static final int OPEN_DOCUMENT_TREE_RESULT = 2;
 
 	private static final int REQUEST_EXT_STORAGE_WRITE_PERM = 0;
 
@@ -160,13 +161,13 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 		}
 	};
-    private boolean isInitPartitions = false;
+	private boolean isInitPartitions = false;
 
-    /**
+	/**
 	 * Dialog to create new directories.
-	 * 
+	 *
 	 * @author mjahnen
-	 * 
+	 *
 	 */
 	public static class NewDirDialog extends DialogFragment {
 
@@ -210,9 +211,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 	/**
 	 * Dialog to create new files.
-	 * 
+	 *
 	 * @author mjahnen
-	 * 
+	 *
 	 */
 	public static class NewFileDialog extends DialogFragment {
 
@@ -271,9 +272,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	/**
 	 * Class to hold the files for a copy task. Holds the source and the
 	 * destination file.
-	 * 
+	 *
 	 * @author mjahnen
-	 * 
+	 *
 	 */
 	private static class CopyTaskParam {
 		/* package */UsbFile from;
@@ -283,9 +284,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	/**
 	 * Asynchronous task to copy a file from the mass storage device connected
 	 * via USB to the internal storage.
-	 * 
+	 *
 	 * @author mjahnen
-	 * 
+	 *
 	 */
 	private class CopyTask extends AsyncTask<CopyTaskParam, Integer, Void> {
 
@@ -298,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 			dialog.setMessage("Copying a file to the internal storage, this can take some time!");
 			dialog.setIndeterminate(false);
 			dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            dialog.setCancelable(false);
+			dialog.setCancelable(false);
 		}
 
 		@Override
@@ -312,25 +313,25 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 			param = params[0];
 			try {
 				OutputStream out = new BufferedOutputStream(new FileOutputStream(param.to));
-                InputStream inputStream = new UsbFileInputStream(param.from);
-                byte[] bytes = new byte[currentFs.getChunkSize()];
-                int count;
-                long total = 0;
+				InputStream inputStream = new UsbFileInputStream(param.from);
+				byte[] bytes = new byte[currentFs.getChunkSize()];
+				int count;
+				long total = 0;
 
-                Log.d(TAG, "Copy file with length: " + param.from.getLength());
+				Log.d(TAG, "Copy file with length: " + param.from.getLength());
 
-                while ((count = inputStream.read(bytes)) != -1){
-                    out.write(bytes, 0, count);
-                    total += count;
-                    int progress = (int) total;
-                    if(param.from.getLength() > Integer.MAX_VALUE) {
-                        progress = (int) (total / 1024);
-                    }
-                    publishProgress(progress);
-                }
+				while ((count = inputStream.read(bytes)) != -1){
+					out.write(bytes, 0, count);
+					total += count;
+					int progress = (int) total;
+					if(param.from.getLength() > Integer.MAX_VALUE) {
+						progress = (int) (total / 1024);
+					}
+					publishProgress(progress);
+				}
 
 				out.close();
-                inputStream.close();
+				inputStream.close();
 			} catch (IOException e) {
 				Log.e(TAG, "error copying!", e);
 			}
@@ -349,15 +350,15 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 			String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(
 					extension);
 
-            Uri uri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                myIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                uri = FileProvider.getUriForFile(MainActivity.this,
-                        MainActivity.this.getApplicationContext().getPackageName() + ".provider",
-                        file);
-            } else {
-                uri = Uri.fromFile(file);
-            }
+			Uri uri;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+				myIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+				uri = FileProvider.getUriForFile(MainActivity.this,
+						MainActivity.this.getApplicationContext().getPackageName() + ".provider",
+						file);
+			} else {
+				uri = Uri.fromFile(file);
+			}
 			myIntent.setDataAndType(uri, mimetype);
 			try {
 				startActivity(myIntent);
@@ -369,330 +370,330 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 		@Override
 		protected void onProgressUpdate(Integer... values) {
-            int max = (int) param.from.getLength();
-            if(param.from.getLength() > Integer.MAX_VALUE) {
-                max = (int) (param.from.getLength() / 1024);
-            }
+			int max = (int) param.from.getLength();
+			if(param.from.getLength() > Integer.MAX_VALUE) {
+				max = (int) (param.from.getLength() / 1024);
+			}
 			dialog.setMax(max);
 			dialog.setProgress(values[0]);
 		}
 
 	}
 
-    /**
-     * Class to hold the files for a copy task. Holds the source and the
-     * destination file.
-     *
-     * @author mjahnen
-     *
-     */
-    private static class CopyToUsbTaskParam {
-        /* package */Uri from;
-    }
+	/**
+	 * Class to hold the files for a copy task. Holds the source and the
+	 * destination file.
+	 *
+	 * @author mjahnen
+	 *
+	 */
+	private static class CopyToUsbTaskParam {
+		/* package */Uri from;
+	}
 
-    /**
-     * Asynchronous task to copy a file from the mass storage device connected
-     * via USB to the internal storage.
-     *
-     * @author mjahnen
-     *
-     */
-    private class CopyToUsbTask extends AsyncTask<CopyToUsbTaskParam, Integer, Void> {
+	/**
+	 * Asynchronous task to copy a file from the mass storage device connected
+	 * via USB to the internal storage.
+	 *
+	 * @author mjahnen
+	 *
+	 */
+	private class CopyToUsbTask extends AsyncTask<CopyToUsbTaskParam, Integer, Void> {
 
-        private ProgressDialog dialog;
-        private CopyToUsbTaskParam param;
+		private ProgressDialog dialog;
+		private CopyToUsbTaskParam param;
 
-        private String name;
-        private long size = -1;
+		private String name;
+		private long size = -1;
 
-        public CopyToUsbTask() {
-            dialog = new ProgressDialog(MainActivity.this);
-            dialog.setTitle("Copying file");
-            dialog.setMessage("Copying a file to the USB drive, this can take some time!");
-            dialog.setIndeterminate(true);
-            dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            dialog.setCancelable(false);
-        }
+		public CopyToUsbTask() {
+			dialog = new ProgressDialog(MainActivity.this);
+			dialog.setTitle("Copying file");
+			dialog.setMessage("Copying a file to the USB drive, this can take some time!");
+			dialog.setIndeterminate(true);
+			dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			dialog.setCancelable(false);
+		}
 
-        private void queryUriMetaData(Uri uri) {
-            Cursor cursor = getContentResolver().query(uri, null, null, null, null, null);
+		private void queryUriMetaData(Uri uri) {
+			Cursor cursor = getContentResolver().query(uri, null, null, null, null, null);
 
-            // TODO: query created and modified times to write it USB 
-            if (cursor != null && cursor.moveToFirst()) {
-                name = cursor.getString(
-                        cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                Log.i(TAG, "Display Name: " + name);
-                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-                if (!cursor.isNull(sizeIndex)) {
-                    size = cursor.getLong(sizeIndex);
-                }
-                Log.i(TAG, "Size: " + size);
+			// TODO: query created and modified times to write it USB
+			if (cursor != null && cursor.moveToFirst()) {
+				name = cursor.getString(
+						cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+				Log.i(TAG, "Display Name: " + name);
+				int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+				if (!cursor.isNull(sizeIndex)) {
+					size = cursor.getLong(sizeIndex);
+				}
+				Log.i(TAG, "Size: " + size);
 
-                cursor.close();
-            }
-        }
+				cursor.close();
+			}
+		}
 
-        @Override
-        protected void onPreExecute() {
-            dialog.show();
-        }
+		@Override
+		protected void onPreExecute() {
+			dialog.show();
+		}
 
-        @Override
-        protected Void doInBackground(CopyToUsbTaskParam... params) {
-            long time = System.currentTimeMillis();
-            param = params[0];
+		@Override
+		protected Void doInBackground(CopyToUsbTaskParam... params) {
+			long time = System.currentTimeMillis();
+			param = params[0];
 
-            queryUriMetaData(param.from);
+			queryUriMetaData(param.from);
 
-            if (name == null) {
-                String[] segments = param.from.getPath().split("/");
-                name = segments[segments.length - 1];
-            }
+			if (name == null) {
+				String[] segments = param.from.getPath().split("/");
+				name = segments[segments.length - 1];
+			}
 
-            try {
-                UsbFile file = adapter.getCurrentDir().createFile(name);
+			try {
+				UsbFile file = adapter.getCurrentDir().createFile(name);
 
-                if (size > 0) {
-                    file.setLength(size);
-                }
+				if (size > 0) {
+					file.setLength(size);
+				}
 
-                InputStream inputStream = getContentResolver().openInputStream(param.from);
-                OutputStream outputStream = UsbFileStreamFactory.createBufferedOutputStream(file, currentFs);
+				InputStream inputStream = getContentResolver().openInputStream(param.from);
+				OutputStream outputStream = UsbFileStreamFactory.createBufferedOutputStream(file, currentFs);
 
-                byte[] bytes = new byte[1337];
-                int count;
-                long total = 0;
+				byte[] bytes = new byte[1337];
+				int count;
+				long total = 0;
 
-                while ((count = inputStream.read(bytes)) != -1){
-                    outputStream.write(bytes, 0, count);
-                    if (size > 0) {
-                        total += count;
-                        int progress = (int) total;
-                        if(size > Integer.MAX_VALUE) {
-                            progress = (int) (total / 1024);
-                        }
-                        publishProgress(progress);
-                    }
-                }
+				while ((count = inputStream.read(bytes)) != -1){
+					outputStream.write(bytes, 0, count);
+					if (size > 0) {
+						total += count;
+						int progress = (int) total;
+						if(size > Integer.MAX_VALUE) {
+							progress = (int) (total / 1024);
+						}
+						publishProgress(progress);
+					}
+				}
 
-                outputStream.close();
-                inputStream.close();
-            } catch (IOException e) {
-                Log.e(TAG, "error copying!", e);
-            }
-            Log.d(TAG, "copy time: " + (System.currentTimeMillis() - time));
-            return null;
-        }
+				outputStream.close();
+				inputStream.close();
+			} catch (IOException e) {
+				Log.e(TAG, "error copying!", e);
+			}
+			Log.d(TAG, "copy time: " + (System.currentTimeMillis() - time));
+			return null;
+		}
 
-        @Override
-        protected void onPostExecute(Void result) {
-            dialog.dismiss();
-            try {
-                adapter.refresh();
-            } catch (IOException e) {
-                Log.e(TAG, "Error refreshing adapter", e);
-            }
-        }
+		@Override
+		protected void onPostExecute(Void result) {
+			dialog.dismiss();
+			try {
+				adapter.refresh();
+			} catch (IOException e) {
+				Log.e(TAG, "Error refreshing adapter", e);
+			}
+		}
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            dialog.setIndeterminate(false);
-            int max = (int) size;
-            if(size > Integer.MAX_VALUE) {
-                max = (int) (size / 1024);
-            }
-            dialog.setMax(max);
-            dialog.setProgress(values[0]);
-        }
+		@Override
+		protected void onProgressUpdate(Integer... values) {
+			dialog.setIndeterminate(false);
+			int max = (int) size;
+			if(size > Integer.MAX_VALUE) {
+				max = (int) (size / 1024);
+			}
+			dialog.setMax(max);
+			dialog.setProgress(values[0]);
+		}
 
-    }
+	}
 
-    /**
-     * Asynchronous task to copy a file from the mass storage device connected
-     * via USB to the internal storage.
-     *
-     * @author mjahnen
-     *
-     */
-    private class CopyFolderToUsbTask extends AsyncTask<CopyToUsbTaskParam, Integer, Void> {
+	/**
+	 * Asynchronous task to copy a file from the mass storage device connected
+	 * via USB to the internal storage.
+	 *
+	 * @author mjahnen
+	 *
+	 */
+	private class CopyFolderToUsbTask extends AsyncTask<CopyToUsbTaskParam, Integer, Void> {
 
-        private ProgressDialog dialog;
-        private CopyToUsbTaskParam param;
+		private ProgressDialog dialog;
+		private CopyToUsbTaskParam param;
 
-        private long size = -1;
-        private DocumentFile pickedDir;
+		private long size = -1;
+		private DocumentFile pickedDir;
 
-        public CopyFolderToUsbTask() {
-            dialog = new ProgressDialog(MainActivity.this);
-            dialog.setTitle("Copying a folder");
-            dialog.setMessage("Copying a folder to the USB drive, this can take some time!");
-            dialog.setIndeterminate(true);
-            dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            dialog.setCancelable(false);
-        }
+		public CopyFolderToUsbTask() {
+			dialog = new ProgressDialog(MainActivity.this);
+			dialog.setTitle("Copying a folder");
+			dialog.setMessage("Copying a folder to the USB drive, this can take some time!");
+			dialog.setIndeterminate(true);
+			dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			dialog.setCancelable(false);
+		}
 
-        @Override
-        protected void onPreExecute() {
-            dialog.show();
-        }
+		@Override
+		protected void onPreExecute() {
+			dialog.show();
+		}
 
-        private void copyDir(DocumentFile dir, UsbFile currentUsbDir) throws IOException {
-            for (DocumentFile file : dir.listFiles()) {
-                Log.d(TAG, "Found file " + file.getName() + " with size " + file.length());
-                if(file.isDirectory()) {
-                    copyDir(file, currentUsbDir.createDirectory(file.getName()));
-                } else {
-                    copyFile(file, currentUsbDir);
-                }
-            }
-        }
+		private void copyDir(DocumentFile dir, UsbFile currentUsbDir) throws IOException {
+			for (DocumentFile file : dir.listFiles()) {
+				Log.d(TAG, "Found file " + file.getName() + " with size " + file.length());
+				if(file.isDirectory()) {
+					copyDir(file, currentUsbDir.createDirectory(file.getName()));
+				} else {
+					copyFile(file, currentUsbDir);
+				}
+			}
+		}
 
-        private void copyFile(DocumentFile file, UsbFile currentUsbDir) {
-            try {
-                UsbFile usbFile = currentUsbDir.createFile(file.getName());
-                size = file.length();
-                usbFile.setLength(file.length());
+		private void copyFile(DocumentFile file, UsbFile currentUsbDir) {
+			try {
+				UsbFile usbFile = currentUsbDir.createFile(file.getName());
+				size = file.length();
+				usbFile.setLength(file.length());
 
-                InputStream inputStream = getContentResolver().openInputStream(file.getUri());
-                OutputStream outputStream = UsbFileStreamFactory.createBufferedOutputStream(usbFile, currentFs);
+				InputStream inputStream = getContentResolver().openInputStream(file.getUri());
+				OutputStream outputStream = UsbFileStreamFactory.createBufferedOutputStream(usbFile, currentFs);
 
-                byte[] bytes = new byte[1337];
-                int count;
-                long total = 0;
+				byte[] bytes = new byte[1337];
+				int count;
+				long total = 0;
 
-                while ((count = inputStream.read(bytes)) != -1){
-                    outputStream.write(bytes, 0, count);
-                    if (size > 0) {
-                        total += count;
-                        int progress = (int) total;
-                        if(file.length() > Integer.MAX_VALUE) {
-                            progress = (int) (total / 1024);
-                        }
-                        publishProgress(progress);
-                    }
-                }
+				while ((count = inputStream.read(bytes)) != -1){
+					outputStream.write(bytes, 0, count);
+					if (size > 0) {
+						total += count;
+						int progress = (int) total;
+						if(file.length() > Integer.MAX_VALUE) {
+							progress = (int) (total / 1024);
+						}
+						publishProgress(progress);
+					}
+				}
 
-                outputStream.close();
-                inputStream.close();
-            } catch (IOException e) {
-                Log.e(TAG, "error copying!", e);
-            }
-        }
+				outputStream.close();
+				inputStream.close();
+			} catch (IOException e) {
+				Log.e(TAG, "error copying!", e);
+			}
+		}
 
-        @Override
-        protected Void doInBackground(CopyToUsbTaskParam... params) {
-            long time = System.currentTimeMillis();
-            param = params[0];
-            pickedDir = DocumentFile.fromTreeUri(MainActivity.this, param.from);
+		@Override
+		protected Void doInBackground(CopyToUsbTaskParam... params) {
+			long time = System.currentTimeMillis();
+			param = params[0];
+			pickedDir = DocumentFile.fromTreeUri(MainActivity.this, param.from);
 
-            try {
-                copyDir(pickedDir, adapter.getCurrentDir().createDirectory(pickedDir.getName()));
-            } catch (IOException e) {
-                Log.e(TAG, "could not copy directory", e);
-            }
+			try {
+				copyDir(pickedDir, adapter.getCurrentDir().createDirectory(pickedDir.getName()));
+			} catch (IOException e) {
+				Log.e(TAG, "could not copy directory", e);
+			}
 
-            Log.d(TAG, "copy time: " + (System.currentTimeMillis() - time));
-            return null;
-        }
+			Log.d(TAG, "copy time: " + (System.currentTimeMillis() - time));
+			return null;
+		}
 
-        @Override
-        protected void onPostExecute(Void result) {
-            dialog.dismiss();
-            try {
-                adapter.refresh();
-            } catch (IOException e) {
-                Log.e(TAG, "Error refreshing adapter", e);
-            }
-        }
+		@Override
+		protected void onPostExecute(Void result) {
+			dialog.dismiss();
+			try {
+				adapter.refresh();
+			} catch (IOException e) {
+				Log.e(TAG, "Error refreshing adapter", e);
+			}
+		}
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            dialog.setIndeterminate(false);
-            int max = (int) size;
-            if(size > Integer.MAX_VALUE) {
-                max = (int) (size / 1024);
-            }
-            dialog.setMax(max);
-            dialog.setProgress(values[0]);
-        }
+		@Override
+		protected void onProgressUpdate(Integer... values) {
+			dialog.setIndeterminate(false);
+			int max = (int) size;
+			if(size > Integer.MAX_VALUE) {
+				max = (int) (size / 1024);
+			}
+			dialog.setMax(max);
+			dialog.setProgress(values[0]);
+		}
 
-    }
+	}
 
-    ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "on service connected " + name);
-            UsbFileHttpServerService.ServiceBinder binder = (UsbFileHttpServerService.ServiceBinder) service;
-            serverService = binder.getService();
-        }
+	ServiceConnection serviceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			Log.d(TAG, "on service connected " + name);
+			UsbFileHttpServerService.ServiceBinder binder = (UsbFileHttpServerService.ServiceBinder) service;
+			serverService = binder.getService();
+		}
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG, "on service disconnected " + name);
-            serverService = null;
-        }
-    };
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			Log.d(TAG, "on service disconnected " + name);
+			serverService = null;
+		}
+	};
 
 	private ListView listView;
-    private ListView drawerListView;
-    private DrawerLayout drawerLayout;
-    private ActionBarDrawerToggle drawerToggle;
+	private ListView drawerListView;
+	private DrawerLayout drawerLayout;
+	private ActionBarDrawerToggle drawerToggle;
 
 	/* package */UsbFileListAdapter adapter;
 	private Deque<UsbFile> dirs = new ArrayDeque<UsbFile>();
 	private FileSystem currentFs;
 
-    private Intent serviceIntent = null;
-    private UsbFileHttpServerService serverService;
-    UsbMassStorageDevice[] massStorageDevices;
-    private int currentDevice = -1;
+	private Intent serviceIntent = null;
+	private UsbFileHttpServerService serverService;
+	UsbMassStorageDevice[] massStorageDevices;
+	private int currentDevice = -1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        serviceIntent = new Intent(this, UsbFileHttpServerService.class);
+		serviceIntent = new Intent(this, UsbFileHttpServerService.class);
 
 		setContentView(R.layout.activity_main);
 
 		listView = (ListView) findViewById(R.id.listview);
-        drawerListView = (ListView) findViewById(R.id.left_drawer);
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawerToggle = new ActionBarDrawerToggle(
-                this,                  /* host Activity */
-                drawerLayout,         /* DrawerLayout object */
-                R.string.drawer_open,  /* "open drawer" description */
-                R.string.drawer_close  /* "close drawer" description */
-        ) {
+		drawerListView = (ListView) findViewById(R.id.left_drawer);
+		drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		drawerToggle = new ActionBarDrawerToggle(
+				this,                  /* host Activity */
+				drawerLayout,         /* DrawerLayout object */
+				R.string.drawer_open,  /* "open drawer" description */
+				R.string.drawer_close  /* "close drawer" description */
+		) {
 
-            /** Called when a drawer has settled in a completely closed state. */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                if (isInitPartitions)
-                    getSupportActionBar().setTitle(massStorageDevices[currentDevice].getPartitions().get(0).getVolumeLabel());
-            }
+			/** Called when a drawer has settled in a completely closed state. */
+			public void onDrawerClosed(View view) {
+				super.onDrawerClosed(view);
+				if (isInitPartitions)
+					getSupportActionBar().setTitle(massStorageDevices[currentDevice].getPartitions().get(0).getVolumeLabel());
+			}
 
-            /** Called when a drawer has settled in a completely open state. */
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle("Devices");
-            }
-        };
-        // Set the drawer toggle as the DrawerListener
-        drawerLayout.addDrawerListener(drawerToggle);
+			/** Called when a drawer has settled in a completely open state. */
+			public void onDrawerOpened(View drawerView) {
+				super.onDrawerOpened(drawerView);
+				getSupportActionBar().setTitle("Devices");
+			}
+		};
+		// Set the drawer toggle as the DrawerListener
+		drawerLayout.addDrawerListener(drawerToggle);
 
-        drawerListView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectDevice(position);
-                drawerLayout.closeDrawer(drawerListView);
-                drawerListView.setItemChecked(position, true);
-            }
-        });
+		drawerListView.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				selectDevice(position);
+				drawerLayout.closeDrawer(drawerListView);
+				drawerListView.setItemChecked(position, true);
+			}
+		});
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getSupportActionBar().setHomeButtonEnabled(true);
 
-        listView.setOnItemClickListener(this);
+		listView.setOnItemClickListener(this);
 		registerForContextMenu(listView);
 
 		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
@@ -700,29 +701,29 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 		filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
 		registerReceiver(usbReceiver, filter);
 		discoverDevice();
-    }
+	}
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+	@Override
+	protected void onStart() {
+		super.onStart();
 
-        startService(serviceIntent);
-        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-    }
+		startService(serviceIntent);
+		bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+	}
 
-    @Override
-    protected void onStop() {
-        super.onStop();
+	@Override
+	protected void onStop() {
+		super.onStop();
 
-        unbindService(serviceConnection);
-    }
+		unbindService(serviceConnection);
+	}
 
-    private void selectDevice(int position) {
-        currentDevice = position;
-        setupDevice();
-    }
+	private void selectDevice(int position) {
+		currentDevice = position;
+		setupDevice();
+	}
 
-    /**
+	/**
 	 * Searches for connected mass storage devices, and initializes them if it
 	 * could find some.
 	 */
@@ -737,9 +738,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 			listView.setAdapter(null);
 			return;
 		}
-        drawerListView.setAdapter(new DrawerListAdapter(this, R.layout.drawer_list_item, massStorageDevices));
-        drawerListView.setItemChecked(0, true);
-        currentDevice = 0;
+		drawerListView.setAdapter(new DrawerListAdapter(this, R.layout.drawer_list_item, massStorageDevices));
+		drawerListView.setItemChecked(0, true);
+		currentDevice = 0;
 
 		UsbDevice usbDevice = (UsbDevice) getIntent().getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
@@ -762,31 +763,31 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	 */
 	private void setupDevice() {
 		try {
-            massStorageDevices[currentDevice].init();
+			massStorageDevices[currentDevice].init();
 
 			// we always use the first partition of the device
 			currentFs = massStorageDevices[currentDevice].getPartitions().get(0).getFileSystem();
-            for (Partition partition : massStorageDevices[currentDevice].getPartitions()) {
-                currentFs = partition.getFileSystem();
-                LogUtil.writeLog("---start---");
-                ArrayList a = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
-                LogUtil.writeLog(a.toString());
-                LogUtil.writeLog("---end---");
-            }
-            Log.d(TAG, "VolumeLabel: " + currentFs.getVolumeLabel());
+			for (Partition partition : massStorageDevices[currentDevice].getPartitions()) {
+				currentFs = partition.getFileSystem();
+				LogUtil.writeLog("---start---");
+				ArrayList a = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
+				LogUtil.writeLog(a.toString());
+				LogUtil.writeLog("---end---");
+			}
+			Log.d(TAG, "VolumeLabel: " + currentFs.getVolumeLabel());
 			Log.d(TAG, "Capacity: " + currentFs.getCapacity());
 			Log.d(TAG, "Occupied Space: " + currentFs.getOccupiedSpace());
 			Log.d(TAG, "Free Space: " + currentFs.getFreeSpace());
-            Log.d(TAG, "Chunk size: " + currentFs.getChunkSize());
+			Log.d(TAG, "Chunk size: " + currentFs.getChunkSize());
 			UsbFile root = currentFs.getRootDirectory();
 
 			ActionBar actionBar = getSupportActionBar();
 			actionBar.setTitle(currentFs.getVolumeLabel());
 
 			listView.setAdapter(adapter = new UsbFileListAdapter(this, root));
-            isInitPartitions = true;
+			isInitPartitions = true;
 		} catch (IOException e) {
-            Toast.makeText(this, "error setting up device" + e, Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "error setting up device" + e, Toast.LENGTH_LONG).show();
 			Log.e(TAG, "error setting up device", e);
 		}
 
@@ -809,74 +810,74 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-        if (drawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
+		if (drawerToggle.onOptionsItemSelected(item)) {
+			return true;
+		}
 
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.create_file:
-			new NewFileDialog().show(getFragmentManager(), "NEW_FILE");
-			return true;
-		case R.id.create_dir:
-			new NewDirDialog().show(getFragmentManager(), "NEW_DIR");
-			return true;
-		case R.id.create_big_file:
-			createBigFile();
-			return true;
-		case R.id.paste:
-			move();
-			return true;
-        case R.id.stop_http_server:
-            if(serverService != null) {
-                serverService.stopServer();
-            }
-            return true;
-		case R.id.run_tests:
-			startActivity(new Intent(this, LibAumsTest.class));
-			return true;
-		case R.id.open_storage_provider:
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-				if(currentDevice != -1) {
-                    Log.d(TAG, "Closing device first");
-                    massStorageDevices[currentDevice].close();
+			case R.id.create_file:
+				new NewFileDialog().show(getFragmentManager(), "NEW_FILE");
+				return true;
+			case R.id.create_dir:
+				new NewDirDialog().show(getFragmentManager(), "NEW_DIR");
+				return true;
+			case R.id.create_big_file:
+				createBigFile();
+				return true;
+			case R.id.paste:
+				move();
+				return true;
+			case R.id.stop_http_server:
+				if(serverService != null) {
+					serverService.stopServer();
 				}
-				Intent intent = new Intent();
-				intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
-				intent.addCategory(Intent.CATEGORY_OPENABLE);
-				intent.setType("*/*");
-				String[] extraMimeTypes = {"image/*", "video/*"};
-				intent.putExtra(Intent.EXTRA_MIME_TYPES, extraMimeTypes);
-				intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-				startActivityForResult(intent, OPEN_STORAGE_PROVIDER_RESULT);
-			}
-			return true;
-        case R.id.copy_from_storage_provider:
+				return true;
+			case R.id.run_tests:
+				startActivity(new Intent(this, LibAumsTest.class));
+				return true;
+			case R.id.open_storage_provider:
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+					if(currentDevice != -1) {
+						Log.d(TAG, "Closing device first");
+						massStorageDevices[currentDevice].close();
+					}
+					Intent intent = new Intent();
+					intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+					intent.addCategory(Intent.CATEGORY_OPENABLE);
+					intent.setType("*/*");
+					String[] extraMimeTypes = {"image/*", "video/*"};
+					intent.putExtra(Intent.EXTRA_MIME_TYPES, extraMimeTypes);
+					intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+					startActivityForResult(intent, OPEN_STORAGE_PROVIDER_RESULT);
+				}
+				return true;
+			case R.id.copy_from_storage_provider:
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+					Intent intent = new Intent();
+					intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+					intent.addCategory(Intent.CATEGORY_OPENABLE);
+					intent.setType("*/*");
 
-                startActivityForResult(intent, COPY_STORAGE_PROVIDER_RESULT);
-            }
-            return true;
-		case R.id.copy_folder_from_storage_provider:
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
+					startActivityForResult(intent, COPY_STORAGE_PROVIDER_RESULT);
+				}
+				return true;
+			case R.id.copy_folder_from_storage_provider:
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+					Intent intent = new Intent();
+					intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
 
-                startActivityForResult(intent, OPEN_DOCUMENT_TREE_RESULT);
-            }
-            return true;
-		default:
-			return super.onOptionsItemSelected(item);
+					startActivityForResult(intent, OPEN_DOCUMENT_TREE_RESULT);
+				}
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 
 	}
 
-    @Override
+	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
 		MenuInflater inflater = getMenuInflater();
@@ -888,70 +889,63 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 		final UsbFile entry = adapter.getItem((int) info.id);
 		switch (item.getItemId()) {
-		case R.id.delete_item:
-			try {
-				entry.delete();
-				adapter.refresh();
-			} catch (IOException e) {
-				Log.e(TAG, "error deleting!", e);
-			}
-			return true;
-		case R.id.rename_item:
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle("Rename");
-			builder.setMessage("Please enter a name for renaming");
-			final EditText input = new EditText(this);
-			input.setText(entry.getName());
-			builder.setView(input);
+			case R.id.delete_item:
+				try {
+					entry.delete();
+					adapter.refresh();
+				} catch (IOException e) {
+					Log.e(TAG, "error deleting!", e);
+				}
+				return true;
+			case R.id.rename_item:
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle("Rename");
+				builder.setMessage("Please enter a name for renaming");
+				final EditText input = new EditText(this);
+				input.setText(entry.getName());
+				builder.setView(input);
 
-			builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int whichButton) {
-					try {
-						entry.setName(input.getText().toString());
-						adapter.refresh();
-					} catch (IOException e) {
-						Log.e(TAG, "error renaming!", e);
+				builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int whichButton) {
+						try {
+							entry.setName(input.getText().toString());
+							adapter.refresh();
+						} catch (IOException e) {
+							Log.e(TAG, "error renaming!", e);
+						}
 					}
-				}
 
-			});
+				});
 
-			builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int whichButton) {
-					dialog.dismiss();
-				}
-			});
-			builder.setCancelable(false);
-			builder.create().show();
-			return true;
-		case R.id.move_item:
-			MoveClipboard cl = MoveClipboard.getInstance();
-			cl.setFile(entry);
-			return true;
-        case R.id.start_http_server:
-            startHttpServer(entry);
-            return true;
-		default:
-			return super.onContextItemSelected(item);
+				builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int whichButton) {
+						dialog.dismiss();
+					}
+				});
+				builder.setCancelable(false);
+				builder.create().show();
+				return true;
+			case R.id.move_item:
+				MoveClipboard cl = MoveClipboard.getInstance();
+				cl.setFile(entry);
+				return true;
+			case R.id.start_http_server:
+				startHttpServer(entry);
+				return true;
+			default:
+				return super.onContextItemSelected(item);
 		}
 	}
 
-    @Override
+	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long rowId) {
 		UsbFile entry = adapter.getItem(position);
 		try {
 			//---start demo-----
 			ArrayList partitions = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
 			LogUtil.writeLog(partitions.toString());
-			ArrayList firstPartition = (ArrayList) partitions.get(0);
-			//TGFileList for FAT32
-			if (2 == (int)firstPartition.get(1)){
-				UsbFile usbFile= (UsbFile) new TGFileList(currentFs).getFilesMap().get("/378_icon.jpg");
-				LogUtil.writeLog(usbFile.getParent().getAbsolutePath());
-				LogUtil.writeLog(String.valueOf(usbFile.isDirectory()));
-			}
 			//---end demo-----
 			if (entry.isDirectory()) {
 				dirs.push(adapter.getCurrentDir());
@@ -978,6 +972,32 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 				File f = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
 						+ "/usbfileman/cache");
 				f.mkdirs();
+				//---start demo-----
+				//----單擋案完成--
+				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+				UsbFile file = fileOperation.getFile("/123/321/123/picture.jpg");
+//				fileOperation.getFile("/123/picture.jpg");
+				ArrayList arrayList = new ArrayList();
+				arrayList.add(file);
+				//----單擋案完成--
+
+//				if (usb == null) {
+//					LogUtil.writeLog("usb == null");
+//				}
+//				else {
+//					LogUtil.writeLog("usb != null");
+//				}
+				//----多擋案完成--
+//				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+//				UsbFile[] usbFiles = fileOperation.getFileListIn("/123/321/123");
+//				ArrayList arrayList = new ArrayList();
+//				for (UsbFile file : usbFiles) {
+//					arrayList.add(file);
+//				}
+				//----多擋案完成--
+				fileOperation.fileCopyToPhone(MainActivity.this, arrayList,
+						Environment.getExternalStorageDirectory().getAbsolutePath());
+				//---end demo-----
 				int index = entry.getName().lastIndexOf(".") > 0
 						? entry.getName().lastIndexOf(".")
 						: entry.getName().length();
@@ -988,50 +1008,53 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 					prefix += "pad";
 				}
 				param.to = File.createTempFile(prefix, ext, f);
-				new CopyTask().execute(param);
+//				new CopyTask().execute(param);
 			}
 		} catch (IOException e) {
 			Log.e(TAG, "error staring to copy!", e);
+		} catch (TGFileOperationException e) {
+			Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+			e.printStackTrace();
 		}
 	}
 
-    private void startHttpServer(final UsbFile file) {
+	private void startHttpServer(final UsbFile file) {
 
-        Log.d(TAG, "starting HTTP server");
+		Log.d(TAG, "starting HTTP server");
 
-        if(serverService == null) {
-            Toast.makeText(MainActivity.this, "serverService == null!", Toast.LENGTH_LONG).show();
-            return;
-        }
+		if(serverService == null) {
+			Toast.makeText(MainActivity.this, "serverService == null!", Toast.LENGTH_LONG).show();
+			return;
+		}
 
-        if(serverService.isServerRunning()) {
-            Log.d(TAG, "Stopping existing server service");
-            serverService.stopServer();
-        }
+		if(serverService.isServerRunning()) {
+			Log.d(TAG, "Stopping existing server service");
+			serverService.stopServer();
+		}
 
-        // now start the server
-        try {
-            serverService.startServer(file, new AsyncHttpServer(8000));
-            Toast.makeText(MainActivity.this, "HTTP server up and running", Toast.LENGTH_LONG).show();
-        } catch (IOException e) {
-            Log.e(TAG, "Error starting HTTP server", e);
-            Toast.makeText(MainActivity.this, "Could not start HTTP server", Toast.LENGTH_LONG).show();
-        }
+		// now start the server
+		try {
+			serverService.startServer(file, new AsyncHttpServer(8000));
+			Toast.makeText(MainActivity.this, "HTTP server up and running", Toast.LENGTH_LONG).show();
+		} catch (IOException e) {
+			Log.e(TAG, "Error starting HTTP server", e);
+			Toast.makeText(MainActivity.this, "Could not start HTTP server", Toast.LENGTH_LONG).show();
+		}
 
-        if(file.isDirectory()) {
-            // only open activity when serving a file
-            return;
-        }
+		if(file.isDirectory()) {
+			// only open activity when serving a file
+			return;
+		}
 
-        Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
-        myIntent.setData(Uri.parse(serverService.getServer().getBaseUrl() + file.getName()));
-        try {
-            startActivity(myIntent);
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(MainActivity.this, "Could no find an app for that file!",
-                    Toast.LENGTH_LONG).show();
-        }
-    }
+		Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
+		myIntent.setData(Uri.parse(serverService.getServer().getBaseUrl() + file.getName()));
+		try {
+			startActivity(myIntent);
+		} catch (ActivityNotFoundException e) {
+			Toast.makeText(MainActivity.this, "Could no find an app for that file!",
+					Toast.LENGTH_LONG).show();
+		}
+	}
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -1054,10 +1077,10 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode != Activity.RESULT_OK) {
-            Log.w(TAG, "Activity result is not ok");
-            return;
-        }
+		if (resultCode != Activity.RESULT_OK) {
+			Log.w(TAG, "Activity result is not ok");
+			return;
+		}
 
 		if (requestCode == OPEN_STORAGE_PROVIDER_RESULT) {
 			Uri uri;
@@ -1069,28 +1092,28 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 				startActivity(i);
 			}
 		} else if (requestCode == COPY_STORAGE_PROVIDER_RESULT) {
-            Uri uri;
-            if (data != null) {
-                uri = data.getData();
-                Log.i(TAG, "Uri: " + uri.toString());
+			Uri uri;
+			if (data != null) {
+				uri = data.getData();
+				Log.i(TAG, "Uri: " + uri.toString());
 
-                CopyToUsbTaskParam params = new CopyToUsbTaskParam();
-                params.from = uri;
+				CopyToUsbTaskParam params = new CopyToUsbTaskParam();
+				params.from = uri;
 
-                new CopyToUsbTask().execute(params);
-            }
-        } else if (requestCode == OPEN_DOCUMENT_TREE_RESULT) {
-            Uri uri;
-            if (data != null) {
-                uri = data.getData();
-                Log.i(TAG, "Uri: " + uri.toString());
+				new CopyToUsbTask().execute(params);
+			}
+		} else if (requestCode == OPEN_DOCUMENT_TREE_RESULT) {
+			Uri uri;
+			if (data != null) {
+				uri = data.getData();
+				Log.i(TAG, "Uri: " + uri.toString());
 
-                CopyToUsbTaskParam params = new CopyToUsbTaskParam();
-                params.from = uri;
+				CopyToUsbTaskParam params = new CopyToUsbTaskParam();
+				params.from = uri;
 
-                new CopyFolderToUsbTask().execute(params);
-            }
-        }
+				new CopyFolderToUsbTask().execute(params);
+			}
+		}
 	}
 
 	/**
@@ -1106,17 +1129,17 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 		UsbFile file;
 		try {
 			file = dir.createFile("big_file_test.txt");
-            OutputStream outputStream = UsbFileStreamFactory.createBufferedOutputStream(file, currentFs);
+			OutputStream outputStream = UsbFileStreamFactory.createBufferedOutputStream(file, currentFs);
 			outputStream.write("START\n".getBytes());
 			int i;
 
 			for (i = 6; i < 9000; i += 5) {
-                outputStream.write("TEST\n".getBytes());
+				outputStream.write("TEST\n".getBytes());
 			}
 
-            outputStream.write("END\n".getBytes());
+			outputStream.write("END\n".getBytes());
 
-            outputStream.close();
+			outputStream.close();
 
 			adapter.refresh();
 		} catch (IOException e) {
@@ -1157,15 +1180,15 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 		super.onDestroy();
 		unregisterReceiver(usbReceiver);
 
-        if(!serverService.isServerRunning()) {
-            Log.d(TAG, "Stopping service");
-            stopService(serviceIntent);
+		if(!serverService.isServerRunning()) {
+			Log.d(TAG, "Stopping service");
+			stopService(serviceIntent);
 
-            if (currentDevice != -1) {
-                Log.d(TAG, "Closing device");
+			if (currentDevice != -1) {
+				Log.d(TAG, "Closing device");
 
-                massStorageDevices[currentDevice].close();
-            }
-        }
+				massStorageDevices[currentDevice].close();
+			}
+		}
 	}
 }
