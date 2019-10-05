@@ -41,4 +41,7 @@
     <string name="copy_folder_to_usb">Copy folder to USB</string>
     <string name="drawer_open">Show Devices</string>
     <string name="drawer_close">Close</string>
+    <string name="copy_to_storage_provider">Copy to storage provider</string>
+    <string name="copy_folder_to_storage_provider">Copy files list to storage provider</string>
+    <string name="get_all_partition_info">Get all partition info</string>
 </resources>

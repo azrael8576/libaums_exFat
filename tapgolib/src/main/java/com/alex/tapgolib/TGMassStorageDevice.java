@@ -1,4 +1,4 @@
-package com.tapgo.alex.libaums;
+package com.alex.tapgolib;
 
 import com.github.mjdev.libaums.UsbMassStorageDevice;
 import com.github.mjdev.libaums.fs.FileSystem;

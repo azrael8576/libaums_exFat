@@ -58,4 +58,16 @@
         android:id="@+id/copy_folder_from_storage_provider"
         android:title="@string/copy_folder_to_usb"/>
 
+    <item
+        android:id="@+id/copy_from_usb"
+        android:title="@string/copy_to_storage_provider"/>
+
+    <item
+        android:id="@+id/copy_folder_from_usb"
+        android:title="@string/copy_folder_to_storage_provider"/>
+
+    <item
+        android:id="@+id/get_all_partition_info"
+        android:title="@string/get_all_partition_info"/>
+
 </menu>

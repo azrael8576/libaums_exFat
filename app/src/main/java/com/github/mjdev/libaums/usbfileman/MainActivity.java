@@ -80,6 +80,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alex.tapgolib.TGFileOperation;
+import com.alex.tapgolib.TGFileOperationException;
+import com.alex.tapgolib.TGMassStorageDevice;
 import com.github.magnusja.libaums.javafs.JavaFsFileSystemCreator;
 import com.github.mjdev.libaums.UsbMassStorageDevice;
 import com.github.mjdev.libaums.fs.FileSystem;
@@ -90,9 +93,7 @@ import com.github.mjdev.libaums.fs.UsbFileStreamFactory;
 import com.github.mjdev.libaums.partition.Partition;
 import com.github.mjdev.libaums.server.http.UsbFileHttpServerService;
 import com.github.mjdev.libaums.server.http.server.AsyncHttpServer;
-import com.tapgo.alex.libaums.TGFileOperation;
-import com.tapgo.alex.libaums.TGFileOperationException;
-import com.tapgo.alex.libaums.TGMassStorageDevice;
+
 
 /**
  * MainActivity of the demo application which shows the contents of the first
@@ -118,6 +119,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	private static final int OPEN_DOCUMENT_TREE_RESULT = 2;
 
 	private static final int REQUEST_EXT_STORAGE_WRITE_PERM = 0;
+	private static String copyPath = null;
+	private static String toPath = null;
+	private static final String SD_CARD_PATH = "#SD_CARD";
 
 	private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 		@Override
@@ -209,12 +213,128 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 	}
 
-	/**
-	 * Dialog to create new files.
-	 *
-	 * @author mjahnen
-	 *
-	 */
+	public static class CopyFileDialog extends DialogFragment {
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			final MainActivity activity = (MainActivity) getActivity();
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setTitle("Copy File to Phone");
+			builder.setMessage("Please enter file pathname and target path");
+			final EditText input = new EditText(activity);
+			final EditText content = new EditText(activity);
+			LinearLayout layout = new LinearLayout(activity);
+			layout.setOrientation(LinearLayout.VERTICAL);
+			TextView textView = new TextView(activity);
+			textView.setText("File Path");
+			layout.addView(textView);
+			layout.addView(input);
+			textView = new TextView(activity);
+			textView.setText("Target path");
+			layout.addView(textView);
+			layout.addView(content);
+
+			builder.setView(layout);
+
+			builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int whichButton) {
+					copyPath = input.getText().toString();
+					toPath = content.getText().toString();
+					if (currentFs != null && !"".equals(toPath) && !"".equals(copyPath)) {
+						copyFile(getActivity());
+					}
+				}
+
+			});
+
+			builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int whichButton) {
+					dialog.dismiss();
+				}
+			});
+
+			builder.setCancelable(false);
+			return builder.create();
+		}
+
+	}
+
+	public static class CopyDirFilesDialog extends DialogFragment {
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			final MainActivity activity = (MainActivity) getActivity();
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setTitle("Copy All Files in Dir");
+			builder.setMessage("Please enter dir pathname and target path");
+			final EditText input = new EditText(activity);
+			final EditText content = new EditText(activity);
+			LinearLayout layout = new LinearLayout(activity);
+			layout.setOrientation(LinearLayout.VERTICAL);
+			TextView textView = new TextView(activity);
+			textView.setText("Dir Path");
+			layout.addView(textView);
+			layout.addView(input);
+			textView = new TextView(activity);
+			textView.setText("Target path");
+			layout.addView(textView);
+			layout.addView(content);
+
+			builder.setView(layout);
+
+			builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int whichButton) {
+					copyPath = input.getText().toString();
+					toPath = content.getText().toString();
+					if (currentFs != null && !"".equals(toPath) && !"".equals(copyPath)) {
+						copyFileList(getActivity());
+					}
+				}
+
+			});
+
+			builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int whichButton) {
+					dialog.dismiss();
+				}
+			});
+
+			builder.setCancelable(false);
+			return builder.create();
+		}
+
+	}
+
+	public static class FsInfoDialog extends DialogFragment {
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			final MainActivity activity = (MainActivity) getActivity();
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setTitle("All Partition Info");
+			if (currentDevice != -1) {
+				ArrayList partitions = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
+				builder.setMessage(partitions.toString());
+			}
+
+			builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int whichButton) {
+				}
+
+			});
+
+
+			builder.setCancelable(false);
+			return builder.create();
+		}
+
+	}
+
 	public static class NewFileDialog extends DialogFragment {
 
 		@Override
@@ -641,12 +761,12 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 	/* package */UsbFileListAdapter adapter;
 	private Deque<UsbFile> dirs = new ArrayDeque<UsbFile>();
-	private FileSystem currentFs;
+	private static FileSystem currentFs;
 
 	private Intent serviceIntent = null;
 	private UsbFileHttpServerService serverService;
-	UsbMassStorageDevice[] massStorageDevices;
-	private int currentDevice = -1;
+	private static UsbMassStorageDevice[] massStorageDevices = null;
+	private static int currentDevice = -1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -769,16 +889,12 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 			currentFs = massStorageDevices[currentDevice].getPartitions().get(0).getFileSystem();
 			for (Partition partition : massStorageDevices[currentDevice].getPartitions()) {
 				currentFs = partition.getFileSystem();
-				LogUtil.writeLog("---start---");
-				ArrayList a = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
-				LogUtil.writeLog(a.toString());
-				LogUtil.writeLog("---end---");
+				Log.d(TAG, "VolumeLabel: " + currentFs.getVolumeLabel());
+				Log.d(TAG, "Capacity: " + currentFs.getCapacity());
+				Log.d(TAG, "Occupied Space: " + currentFs.getOccupiedSpace());
+				Log.d(TAG, "Free Space: " + currentFs.getFreeSpace());
+				Log.d(TAG, "Chunk size: " + currentFs.getChunkSize());
 			}
-			Log.d(TAG, "VolumeLabel: " + currentFs.getVolumeLabel());
-			Log.d(TAG, "Capacity: " + currentFs.getCapacity());
-			Log.d(TAG, "Occupied Space: " + currentFs.getOccupiedSpace());
-			Log.d(TAG, "Free Space: " + currentFs.getFreeSpace());
-			Log.d(TAG, "Chunk size: " + currentFs.getChunkSize());
 			UsbFile root = currentFs.getRootDirectory();
 
 			ActionBar actionBar = getSupportActionBar();
@@ -871,6 +987,15 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 					startActivityForResult(intent, OPEN_DOCUMENT_TREE_RESULT);
 				}
 				return true;
+			case R.id.copy_from_usb:
+				new CopyFileDialog().show(getFragmentManager(), "COPY_FILE");
+				return true;
+			case R.id.copy_folder_from_usb:
+				new CopyDirFilesDialog().show(getFragmentManager(), "COPY_FILE_LIST");
+				return true;
+			case R.id.get_all_partition_info:
+				new FsInfoDialog().show(getFragmentManager(), "FS_INFO");
+				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -943,10 +1068,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 	public void onItemClick(AdapterView<?> parent, View view, int position, long rowId) {
 		UsbFile entry = adapter.getItem(position);
 		try {
-			//---start demo-----
-			ArrayList partitions = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
-			LogUtil.writeLog(partitions.toString());
-			//---end demo-----
 			if (entry.isDirectory()) {
 				dirs.push(adapter.getCurrentDir());
 				listView.setAdapter(adapter = new UsbFileListAdapter(this, entry));
@@ -972,32 +1093,20 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 				File f = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
 						+ "/usbfileman/cache");
 				f.mkdirs();
-				//---start demo-----
-				//----單擋案完成--
-//				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
-//				UsbFile file = fileOperation.getFile("/123/321/123/picture.jpg");
-////				fileOperation.getFile("/123/picture.jpg");
-//				ArrayList arrayList = new ArrayList();
-//				arrayList.add(file);
-				//----單擋案完成--
+				//---Tapgo start demo-----
+				ArrayList partitions = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
+				LogUtil.writeLog(partitions.toString());
 
-//				if (usb == null) {
-//					LogUtil.writeLog("usb == null");
-//				}
-//				else {
-//					LogUtil.writeLog("usb != null");
-//				}
-				//----多擋案完成--
-				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
-				ArrayList arrayList = fileOperation.getFileListIn("/123/321/123");
-//				ArrayList arrayList = new ArrayList();
-//				for (UsbFile file : usbFiles) {
-//					arrayList.add(file);
-//				}
-				//----多擋案完成--
-				fileOperation.fileCopyToPhone(MainActivity.this, arrayList,
-						Environment.getExternalStorageDirectory().getAbsolutePath());
-				//---end demo-----
+				//----獲取單檔案--
+
+
+				//----獲取目錄下全檔案--
+//				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+//				ArrayList arrayList = fileOperation.getFileListIn("/123/321");
+
+				//----複製檔案到--
+
+				//---Tapgo end demo-----
 				int index = entry.getName().lastIndexOf(".") > 0
 						? entry.getName().lastIndexOf(".")
 						: entry.getName().length();
@@ -1011,9 +1120,45 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 //				new CopyTask().execute(param);
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
+			Log.e(TAG, "error staring to copy!", e);
+		}
+	}
+
+	private static void copyFile(Context context) {
+		try {
+			TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+			UsbFile file = fileOperation.getFile(copyPath);
+			ArrayList arrayList = new ArrayList();
+			arrayList.add(file);
+			if (SD_CARD_PATH.equals(toPath)) {
+				toPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+			}
+			fileOperation.fileCopyToPhone(context, arrayList,
+					toPath);
+		} catch (IOException e) {
+			e.printStackTrace();
 			Log.e(TAG, "error staring to copy!", e);
 		} catch (TGFileOperationException e) {
-			Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+			Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show();
+			e.printStackTrace();
+		}
+	}
+
+	private static void copyFileList(Context context) {
+		try {
+			TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
+			ArrayList arrayList = fileOperation.getFileListIn(copyPath);
+			if (SD_CARD_PATH.equals(toPath)) {
+				toPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+			}
+			fileOperation.fileCopyToPhone(context, arrayList,
+					toPath);
+		} catch (IOException e) {
+			e.printStackTrace();
+			Log.e(TAG, "error staring to copy!", e);
+		} catch (TGFileOperationException e) {
+			Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show();
 			e.printStackTrace();
 		}
 	}

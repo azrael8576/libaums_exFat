@@ -15,7 +15,7 @@
  *
  */
 
-package com.tapgo.alex.libaums;
+package com.alex.tapgolib;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

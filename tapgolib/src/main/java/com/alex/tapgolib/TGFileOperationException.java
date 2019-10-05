@@ -1,4 +1,4 @@
-package com.tapgo.alex.libaums;
+package com.alex.tapgolib;
 
 /**
  * Created by AlexHe on 2019-10-01.
