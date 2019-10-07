@@ -1093,20 +1093,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 				File f = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
 						+ "/usbfileman/cache");
 				f.mkdirs();
-				//---Tapgo start demo-----
-				ArrayList partitions = new TGMassStorageDevice(massStorageDevices[currentDevice]).getPartitions();
-				LogUtil.writeLog(partitions.toString());
-
-				//----獲取單檔案--
-
-
-				//----獲取目錄下全檔案--
-//				TGFileOperation fileOperation = new TGFileOperation(currentFs, currentFs.getRootDirectory());
-//				ArrayList arrayList = fileOperation.getFileListIn("/123/321");
-
-				//----複製檔案到--
-
-				//---Tapgo end demo-----
 				int index = entry.getName().lastIndexOf(".") > 0
 						? entry.getName().lastIndexOf(".")
 						: entry.getName().length();
@@ -1117,7 +1103,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 					prefix += "pad";
 				}
 				param.to = File.createTempFile(prefix, ext, f);
-//				new CopyTask().execute(param);
+				new CopyTask().execute(param);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
